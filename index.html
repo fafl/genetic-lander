@@ -20,7 +20,8 @@
         </svg>
         -->
         <script type="text/javascript">
-            var level = parseLevel(level1data);
+            var level = Object.create(Level)
+            level.read(level1data);
             level.lander.xspeed = 20;
             level.lander.yspeed = 10;
             level.lander.angle = 45;
@@ -28,7 +29,7 @@
             for (var i = 0; i < 100; i++) {
                 level.tick();
             }
-            draw(level);
+            level.draw();
         </script>
     </body>
 </html>
