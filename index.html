@@ -1,32 +1,51 @@
 <html>
     <header>
-        <title>Yolo</title>
+        <title>Test</title>
         <script type="text/javascript" src="d3.min.js"></script>
         <script type="text/javascript" src="script.js"></script>
     </header>
     <body>
-        <!--
-        <svg height='300px' width='400px' viewBox='0 0 100 100' id="canvas">
-            
-            <defs>
-                <linearGradient id='grad' y1="100%">
-                    <stop stop-color='red'/>
-                    <stop offset='100%' stop-color='blue'/>
-                </linearGradient>
-            </defs>
-            <line class="trajectory" x1="5" y1="5" x2="95" y2="95" style="stroke: url(#grad)"/>
-            <line class="trajectory" x1="95" y1="60" x2="5" y2="95" style="stroke: url(#grad)"/>
-            <polyline class="trajectory" points="10,5 20,15 30,15 45,45 90,50 50,90 5,90" style="stroke: url(#grad); fill: none"/>
-        </svg>
-        -->
         <script type="text/javascript">
-            var level = Object.create(Level)
-            level.read(level1data);
-            level.lander.xspeed = 20;
-            level.lander.yspeed = 10;
-            level.lander.angle = 45;
-            level.lander.power = 3;
+            var level = Object.create(Level).init(level1data);
+            
+            // First lander
+            level.landers.push(Object.create(Lander).init(
+                level.defaultLanderFields,
+                "blue"
+            ))
+            var randomCommands0 = Foo.createRandomLanderMoves(100);
+
+            // Second lander
+            level.landers.push(Object.create(Lander).init(
+                [4000, 2000, 0, -10, 9750, 25, 4],
+                "red"
+            ))
+            var randomCommands1 = Foo.createRandomLanderMoves(100, 25);
+
+            // Third lander
+            level.landers.push(Object.create(Lander).init(
+                [4000, 2000, 0, -10, 9750, -5, 3],
+                "green"
+            ))
+            var randomCommands2 = Foo.createRandomLanderMoves(120, -5);
+
+            // Fourth lander
+            level.landers.push(Object.create(Lander).init(
+                [4000, 2000, 0, -10, 9750, 0, 0],
+                "purple"
+            ))
+            var randomCommands3 = Foo.createRandomLanderMoves(120);
+
+            // Fly you fools
             for (var i = 0; i < 100; i++) {
+                level.landers[0].angle = randomCommands0[i][0];
+                level.landers[0].power = randomCommands0[i][1];
+                level.landers[1].angle = randomCommands1[i][0];
+                level.landers[1].power = randomCommands1[i][1];
+                level.landers[2].angle = randomCommands2[i][0];
+                level.landers[2].power = randomCommands2[i][1];
+                level.landers[3].angle = randomCommands3[i][0];
+                level.landers[3].power = randomCommands3[i][1];
                 level.tick();
             }
             level.draw();
