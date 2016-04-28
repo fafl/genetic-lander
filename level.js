@@ -2,7 +2,7 @@ define([
 ], function() {
     return {
         init: function(levelData) {
-            this.timestep   = 0
+            this.svgContainer = null;
             this.landers    = []
             var fields = levelData[0].split(" ");
             this.width      = parseInt(fields[0])
@@ -11,22 +11,33 @@ define([
             this.max_thrust = parseInt(fields[7])
             this.min_angle  = parseInt(fields[8])
             this.max_angle  = parseInt(fields[9])
+            this.landingX1  = -1
+            this.landingX2  = -1
+            this.landingY   = -1
             var numberOfPoints  = parseInt(levelData[1])
             this.points = [];
+            var lastX = -1;
+            var lastY = -1;
             for (var i = 0; i < numberOfPoints; i++) {
                 var points = levelData[i+2].split(" ");
-                this.points.push([
-                    parseInt(points[0]),
-                    parseInt(points[1])
-                ]);
+                var x = parseInt(points[0])
+                var y = parseInt(points[1])
+                this.points.push([x, y]);
+                if (lastY != -1 && lastY == y) {
+                    this.landingX1 = Math.min(x, lastX);
+                    this.landingX2 = Math.max(x, lastX);
+                    this.landingY  = y;
+                }
+                lastX = x;
+                lastY = y;
             }
             this.defaultLanderFields = levelData[i+2].split(" ")
             return this;
         },
-        draw: function() {
+        drawTerrain: function() {
 
             // Create svg element
-            var svgContainer = d3.select("body").append("svg")
+            this.svgContainer = d3.select("body").append("svg")
                 .attr("width", this.width * 0.2)
                 .attr("height", this.height * 0.2)
                 .attr("viewBox", "0 " + this.height + " " + this.width + " 0")
@@ -34,26 +45,26 @@ define([
 
             // Draw terrain
             var polylineString = this.toPolylineString(this.points);
-            var terrain = svgContainer.append("polyline")
+            terrain = this.svgContainer.append("polyline")
                 .attr("class", "terrain")
                 .attr("points", polylineString)
                 .style("stroke", "black")
                 .style("stroke-width", "10")
                 .style("fill", "none")
+        },
+        drawLanders: function() {
 
-            // Draw lander path
+            // Delete old and draw current flightpaths
+            d3.selectAll(".flightpath").remove();
             for (var i = 0; i < this.landers.length; i++) {
                 polylineString = this.toPolylineString(this.landers[i].points);
-                svgContainer.append("polyline")
+                this.svgContainer.append("polyline")
                     .attr("class", "flightpath")
                     .attr("points", polylineString)
                     .style("stroke", this.landers[i].color)
                     .style("stroke-width", "10")
                     .style("fill", "none")
             }
-        },
-        clearFlightPaths: function() {
-            d3.selectAll(".flightpath").remove();
         },
         toPolylineString: function(a) {
 
@@ -67,7 +78,7 @@ define([
         },
         tick: function() {
             for (var i = 0; i < this.landers.length; i++) {
-                this.landers[i].tick(this.g);
+                this.landers[i].tick(this);
             }
         }
     }

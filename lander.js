@@ -1,11 +1,14 @@
 define([
-], function() {
+    "helper"
+], function(Helper) {
     return {
-            init: function(fields) {
+        init: function(fields) {
+            this.timestep   = 0
             this.points     = [] // List of past points for drawing
             this.commands   = []
             this.color      = "black"
             this.isFlying   = true
+            this.score      = -1
             this.x          = parseInt(fields[0])
             this.y          = parseInt(fields[1])
             this.xspeed     = parseInt(fields[2])
@@ -19,7 +22,7 @@ define([
             this.color = color;
             return this;
         },
-        tick: function(g) {
+        tick: function(level) {
             if (!this.isFlying) {
                 return;
             }
@@ -31,28 +34,71 @@ define([
             this.fuel -= this.power;
             var arcAngle = -this.angle * Math.PI / 180;
             var xacc = Math.sin(arcAngle) * this.power;
-            var yacc = Math.cos(arcAngle) * this.power - g;
+            var yacc = Math.cos(arcAngle) * this.power - level.g;
             this.xspeed += xacc;
             this.yspeed += yacc;
             this.x += this.xspeed - (xacc * 0.5);
             this.y += this.yspeed - (yacc * 0.5);
 
-            // TODO if we just crossed a wall or the level boundary we stop
-            // if boom then this.isFlying = false
+            // If we left the level we stop
+            if (this.x < 0 || level.width <= this.x || this.y < 0 || this.height < this.y) {
+                this.isFlying = false;
+                this.calculateScore(level, false);
+                return;
+            }
+
+            // If we hit terrain we stop
+            var lastX = this.points[this.points.length-1][0];
+            var lastY = this.points[this.points.length-1][1];
+            for (var i = 1; i < level.points.length; i++) {
+                var tx1 = level.points[i-1][0];
+                var ty1 = level.points[i-1][1];
+                var tx2 = level.points[i  ][0];
+                var ty2 = level.points[i  ][1];
+                var collision = Helper.checkLineCollision(lastX, lastY, this.x, this.y, tx1, ty1, tx2, ty2)
+                if (collision.onLine1 && collision.onLine2) {
+                    this.isFlying = false;
+                    this.points.push([collision.x, collision.y]);
+                    this.calculateScore(level, ty1 == ty2);
+                    return;
+                }
+            }
+        },
+        calculateScore: function(level, hitLandingArea) {
+            // Score is used to order landers by performance
+
+            // 0-100: crashed somewhere, calculated by distance to landing area
+            if (!hitLandingArea) {
+                var lx = (level.landingX2 - level.landingX1) / 2;
+                var ly = level.landingY;
+                var px = this.points[this.points.length-1][0];
+                var py = this.points[this.points.length-1][1];
+                var distance = Math.sqrt(
+                                    Math.pow(lx-px, 2) +
+                                    Math.pow(ly-py, 2));
+                var maxDistance = Math.sqrt(
+                                    Math.pow(level.width, 2) +
+                                    Math.pow(level.height, 2));
+                this.score = 100 - (100 * distance / maxDistance);
+                return;
+            }
+
+            // 100-200: crashed into landing area, calculated by speed above safety
+            this.score = 150;
+            
+            // 200-300: landed safely, calculated by fuel remaining
+            // TODO
         },
         createRandomCommands: function(count) {
             var angle = this.angle;
             for (var i = 0; i < count; i++) {
-                angle += this.getRandomInt(-15, 15)
+                angle += Helper.getRandomInt(-15, 15)
                 angle = Math.min(angle, 90)
                 angle = Math.max(angle, -90)
-                power = this.getRandomInt(0, 4)
+                power = Helper.getRandomInt(0, 4)
                 this.commands.push([angle, power]);
             }
             return this;
-        },
-        getRandomInt: function(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
     }
 });
