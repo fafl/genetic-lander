@@ -5,7 +5,7 @@ define([
     "level"
 ], function(d3, Helper, Lander, Level) {
 
-    var NUMBER_OF_LANDERS = 10;
+    var NUMBER_OF_LANDERS = 20;
     var MAX_TIMESTEP = 1000;
 
     var level1data = [
@@ -20,36 +20,45 @@ define([
     var level = Object.create(Level).init(level1data);
     level.drawTerrain();
     
-    // Create landers
-    for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-        level.landers.push(
-            Object.create(Lander)
-                .init(level.defaultLanderFields)
-                .setColor(Helper.rainbow(NUMBER_OF_LANDERS * 5, i))
-                .createRandomCommands(MAX_TIMESTEP)
-        )
-    }
+    // Define button
+    var bestLander = null;
+    document.getElementById("run").onclick = function() {
+        level.landers = [];
 
-    // Fly you fools
-    for (var t = 0; t < MAX_TIMESTEP; t++) {
+        // Create landers
         for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-            var lander = level.landers[i]
-
-            // Set next command
-            lander.angle = lander.commands[t][0];
-            lander.power = lander.commands[t][1];
-
-            // Check if we crashed
-            // TODO
+            level.landers.push(
+                Object.create(Lander)
+                    .init(level.defaultLanderFields)
+                    .setColor(Helper.rainbow(NUMBER_OF_LANDERS * 5, i))
+            )
         }
-        level.tick();
+
+        // Create commands for each lander
+        for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+            if (bestLander == null) {
+                level.landers[i].createRandomCommands(MAX_TIMESTEP)
+            }
+            else {
+                // Copy from best and mutate
+                level.landers[i].copyCommandsAndMutate(bestLander, MAX_TIMESTEP);
+            }
+        }
+
+        // Fly you fools
+        for (var t = 0; t < MAX_TIMESTEP; t++) {
+            for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+                var lander = level.landers[i]
+
+                // Set next command
+                lander.angle = lander.commands[t][0];
+                lander.power = lander.commands[t][1];
+            }
+            level.tick();
+        }
+        level.drawLanders();
+        bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
+
+        console.log(bestLander.score);
     }
-    level.drawLanders();
-
-    var bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
-
-    // blub
-
-    console.log(level.landers.map(function (l) {return l.score}));
-    console.log(bestLander);
 });

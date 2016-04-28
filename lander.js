@@ -30,7 +30,10 @@ define([
             this.points.push([this.x, this.y]);
 
             // Advance the lander one timestep
-            // From https://forum.codingame.com/t/mars-lander-puzzle-discussion/32/129        
+            // From https://forum.codingame.com/t/mars-lander-puzzle-discussion/32/129
+            if (this.fuel < this.power) {
+                this.power = this.fuel;
+            }
             this.fuel -= this.power;
             var arcAngle = -this.angle * Math.PI / 180;
             var xacc = Math.sin(arcAngle) * this.power;
@@ -89,13 +92,29 @@ define([
             // 200-300: landed safely, calculated by fuel remaining
             // TODO
         },
+        copyCommandsAndMutate: function(other, count) {
+            var lastAngle = this.angle;
+            for (var i = 0; i < count; i++) {
+                var otherCommand = other.commands[i]
+                var angle = otherCommand[0];
+                angle += Helper.getRandomInt(-10, 10)
+                angle = Math.min(angle,  90, otherCommand[0] + 15)
+                angle = Math.max(angle, -90, otherCommand[0] - 15)
+                lastAngle = angle;
+                var power = otherCommand[1]
+                power += Helper.getRandomInt(-1, 1)
+                power = Math.min(power, 4)
+                power = Math.max(power, 0)
+                this.commands.push([angle, power]);
+            }
+        },
         createRandomCommands: function(count) {
             var angle = this.angle;
             for (var i = 0; i < count; i++) {
                 angle += Helper.getRandomInt(-15, 15)
                 angle = Math.min(angle, 90)
                 angle = Math.max(angle, -90)
-                power = Helper.getRandomInt(0, 4)
+                var power = Helper.getRandomInt(0, 4)
                 this.commands.push([angle, power]);
             }
             return this;
