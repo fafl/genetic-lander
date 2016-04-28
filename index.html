@@ -6,46 +6,56 @@
     </header>
     <body>
         <script type="text/javascript">
+            function rainbow(numOfSteps, step) {
+                // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+                // Adam Cole, 2011-Sept-14
+                // HSV to RBG adapted from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+                var r, g, b;
+                var h = step / numOfSteps;
+                var i = ~~(h * 6);
+                var f = h * 6 - i;
+                var q = 1 - f;
+                switch (i % 6) {
+                    case 0: r = 1; g = f; b = 0; break;
+                    case 1: r = q; g = 1; b = 0; break;
+                    case 2: r = 0; g = 1; b = f; break;
+                    case 3: r = 0; g = q; b = 1; break;
+                    case 4: r = f; g = 0; b = 1; break;
+                    case 5: r = 1; g = 0; b = q; break;
+                }
+                var c = "#" +
+                    ("00" + (~ ~(r * 255)).toString(16)).slice(-2) +
+                    ("00" + (~ ~(g * 255)).toString(16)).slice(-2) +
+                    ("00" + (~ ~(b * 255)).toString(16)).slice(-2);
+                return c;
+            }
+
+            // Load level
             var level = Object.create(Level).init(level1data);
             
-            // First lander
-            level.landers.push(Object.create(Lander).init(
-                level.defaultLanderFields,
-                "blue"
-            ))
-            var randomCommands0 = Foo.createRandomLanderMoves(100);
-
-            // Second lander
-            level.landers.push(Object.create(Lander).init(
-                [4000, 2000, 0, -10, 9750, 25, 4],
-                "red"
-            ))
-            var randomCommands1 = Foo.createRandomLanderMoves(100, 25);
-
-            // Third lander
-            level.landers.push(Object.create(Lander).init(
-                [4000, 2000, 0, -10, 9750, -5, 3],
-                "green"
-            ))
-            var randomCommands2 = Foo.createRandomLanderMoves(120, -5);
-
-            // Fourth lander
-            level.landers.push(Object.create(Lander).init(
-                [4000, 2000, 0, -10, 9750, 0, 0],
-                "purple"
-            ))
-            var randomCommands3 = Foo.createRandomLanderMoves(120);
+            // Create landers
+            var NUMBER_OF_LANDERS = 100;
+            for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+                level.landers.push(
+                    Object.create(Lander)
+                        .init(level.defaultLanderFields)
+                        .setColor(rainbow(NUMBER_OF_LANDERS * 5, i))
+                        .createRandomCommands(100)
+                )
+            }
 
             // Fly you fools
-            for (var i = 0; i < 100; i++) {
-                level.landers[0].angle = randomCommands0[i][0];
-                level.landers[0].power = randomCommands0[i][1];
-                level.landers[1].angle = randomCommands1[i][0];
-                level.landers[1].power = randomCommands1[i][1];
-                level.landers[2].angle = randomCommands2[i][0];
-                level.landers[2].power = randomCommands2[i][1];
-                level.landers[3].angle = randomCommands3[i][0];
-                level.landers[3].power = randomCommands3[i][1];
+            for (var t = 0; t < 100; t++) {
+                for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+                    var lander = level.landers[i]
+
+                    // Set next command
+                    lander.angle = lander.commands[t][0];
+                    lander.power = lander.commands[t][1];
+
+                    // Check if we crashed
+                    // TODO
+                }
                 level.tick();
             }
             level.draw();

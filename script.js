@@ -10,38 +10,29 @@ var level1data = [
     "4000 2000 0 0 9750 0 0"
 ]
 
-var Foo = {
-    createRandomLanderMoves: function(count, initialAngle) {
-        var result = []
-        var angle = initialAngle || 0;
-        for (var i = 0; i < count; i++) {
-            angle += Foo.getRandomInt(-15, 15)
-            angle = Math.min(angle, 90)
-            angle = Math.max(angle, -90)
-            power = Foo.getRandomInt(0, 4)
-            result.push([angle, power]);
-        }
-        return result;
-    },
-    getRandomInt: function(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-}
-
 var Lander = {
-    init: function(fields, color) {
-        this.points = [] // List of past points for drawing
-        this.color  = color || "black"
-        this.x      = parseInt(fields[0])
-        this.y      = parseInt(fields[1])
-        this.xspeed = parseInt(fields[2])
-        this.yspeed = parseInt(fields[3])
-        this.fuel   = parseInt(fields[4])
-        this.angle  = parseInt(fields[5])
-        this.power  = parseInt(fields[6])
+    init: function(fields) {
+        this.points     = [] // List of past points for drawing
+        this.commands   = []
+        this.color      = "black"
+        this.isFlying   = true
+        this.x          = parseInt(fields[0])
+        this.y          = parseInt(fields[1])
+        this.xspeed     = parseInt(fields[2])
+        this.yspeed     = parseInt(fields[3])
+        this.fuel       = parseInt(fields[4])
+        this.angle      = parseInt(fields[5])
+        this.power      = parseInt(fields[6])
+        return this;
+    },
+    setColor: function(color) {
+        this.color = color;
         return this;
     },
     tick: function(g) {
+        if (!this.isFlying) {
+            return;
+        }
         this.timestep += 1;
         this.points.push([this.x, this.y]);
 
@@ -55,6 +46,23 @@ var Lander = {
         this.yspeed += yacc;
         this.x += this.xspeed - (xacc * 0.5);
         this.y += this.yspeed - (yacc * 0.5);
+
+        // TODO if we just crossed a wall or the level boundary we stop
+        // if boom then this.isFlying = false
+    },
+    createRandomCommands: function(count) {
+        var angle = this.angle;
+        for (var i = 0; i < count; i++) {
+            angle += this.getRandomInt(-15, 15)
+            angle = Math.min(angle, 90)
+            angle = Math.max(angle, -90)
+            power = this.getRandomInt(0, 4)
+            this.commands.push([angle, power]);
+        }
+        return this;
+    },
+    getRandomInt: function(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 }
 
