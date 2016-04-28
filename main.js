@@ -5,8 +5,8 @@ define([
     "level"
 ], function(d3, Helper, Lander, Level) {
 
-    var NUMBER_OF_LANDERS = 20;
-    var MAX_TIMESTEP = 1000;
+    var NUMBER_OF_LANDERS = 100;
+    var MAX_TIMESTEP = 100;
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
@@ -19,19 +19,31 @@ define([
     // Load level
     var level = Object.create(Level).init(level1data);
     level.drawTerrain();
-    
-    // Define button
+
+    // How things are run here
     var bestLander = null;
-    document.getElementById("run").onclick = function() {
-        level.landers = [];
+    var times = 0;
+    var run = function() {
+        if (times <= 0) {
+            console.log(bestLander);
+            return
+        }
+        times -= 1;
 
         // Create landers
+        level.landers = [];
         for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
             level.landers.push(
                 Object.create(Lander)
                     .init(level.defaultLanderFields)
                     .setColor(Helper.rainbow(NUMBER_OF_LANDERS * 5, i))
             )
+        }
+
+        // Best lander may live
+        if (bestLander != null) {
+            level.landers[0] = bestLander;
+            console.log(bestLander.score);
         }
 
         // Create commands for each lander
@@ -59,6 +71,12 @@ define([
         level.drawLanders();
         bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
 
-        console.log(bestLander.score);
+        setTimeout(run, 1);
+    }
+
+    // Define button
+    document.getElementById("run").onclick = function() {
+        times = 10000;
+        run();
     }
 });

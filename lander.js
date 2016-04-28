@@ -16,6 +16,7 @@ define([
             this.fuel       = parseInt(fields[4])
             this.angle      = parseInt(fields[5])
             this.power      = parseInt(fields[6])
+            this.initFuel   = this.fuel
             return this;
         },
         setColor: function(color) {
@@ -87,10 +88,21 @@ define([
             }
 
             // 100-200: crashed into landing area, calculated by speed above safety
-            this.score = 150;
+            if (this.yspeed < -40 || 20 < Math.abs(this.xspeed)) {
+                var xPen = 0;
+                if (20 < Math.abs(this.xspeed)) {
+                    xPen = 100 * (Math.abs(this.xspeed) - 20) / 200
+                }
+                var yPen = 0
+                if (this.yspeed < -40) {
+                    yPen = 100 * (-40 - this.yspeed) / 200
+                }
+                this.score = 200 - xPen - yPen
+                return;
+            }
             
             // 200-300: landed safely, calculated by fuel remaining
-            // TODO
+            this.score = 200 + (100 * this.fuel / this.initfuel)
         },
         copyCommandsAndMutate: function(other, count) {
             var lastAngle = this.angle;
@@ -102,9 +114,11 @@ define([
                 angle = Math.max(angle, -90, otherCommand[0] - 15)
                 lastAngle = angle;
                 var power = otherCommand[1]
-                power += Helper.getRandomInt(-1, 1)
-                power = Math.min(power, 4)
-                power = Math.max(power, 0)
+                if (Math.random() < 0.1) {
+                    power += Helper.getRandomInt(-1, 1)
+                    power = Math.min(power, 4)
+                    power = Math.max(power, 0)
+                }
                 this.commands.push([angle, power]);
             }
         },
