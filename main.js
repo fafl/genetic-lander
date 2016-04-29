@@ -5,23 +5,25 @@ define([
 ], function(d3, Lander, Level) {
 
     var NUMBER_OF_LANDERS = 100;
-    var MAX_TIMESTEP = 100;
+    var REPRODUCING_LANDERS = 10;
+    var MAX_TIMESTEP = 150;
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
         "8",
-        "0 2500", "100 200", "500 150", "1000 400", "2000 400",
+        "0 2500", "100 200", "500 150", "1000 2000", "2000 2000",
         "2100 10", "6899 300", "6999 2500",
-        "6000 2500 30 -10 1750 0 0"
+        "6000 2500 20 -10 1750 0 0"
     ]
+
+    var times = 0;
+    var bestLander = null;
 
     // Load level
     var level = Object.create(Level).init(level1data);
     level.drawTerrain();
 
     // How things are run here
-    var bestLander = null;
-    var times = 0;
     var run = function() {
         if (times <= 0) {
             console.log(bestLander)
@@ -29,49 +31,44 @@ define([
         }
         times -= 1;
 
-        // Create landers
-        level.landers = [];
-        for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-            level.landers.push(
-                Object.create(Lander)
-                    .init(level.defaultLanderFields)
-            )
-        }
-
-        // Create commands for each lander
-        for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-            if (bestLander == null) {
-                level.landers[i].createRandomCommands(MAX_TIMESTEP)
-            }
-            else {
-                // Copy from best and mutate
-                level.landers[i].copyCommandsAndMutate(bestLander, MAX_TIMESTEP);
+        // Create initial random landers
+        if (level.landers.length == 0) {
+            for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+                level.landers.push(
+                    Object.create(Lander)
+                        .init(level.defaultLanderFields)
+                        .createRandomCommands(MAX_TIMESTEP)
+                )
             }
         }
 
-        // Best lander may live
-        // TODO best n landers
-        if (bestLander != null) {
-            level.landers[0] = bestLander;
+        // Evolve existing landers
+        else {
+            for (var i = REPRODUCING_LANDERS; i < NUMBER_OF_LANDERS; i++) {
+                var momIndex = Math.floor(i / REPRODUCING_LANDERS) - 1;
+                var dadIndex = i % REPRODUCING_LANDERS;
+                level.landers[i].inheritCommands(
+                    level.landers[momIndex],
+                    level.landers[dadIndex]
+                );
+                level.landers[i].reset();
+            }
         }
 
         // Fly you fools
         for (var t = 0; t < MAX_TIMESTEP; t++) {
             for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-                var lander = level.landers[i]
-
-                // Set next command
-                lander.angle = lander.commands[t][0];
-                lander.power = lander.commands[t][1];
+                level.landers[i].applyCommand(t);
             }
             level.tick();
         }
 
         // Find best lander
-        bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
+        level.landers = level.landers.sort(function(a,b) {return b.score-a.score});
+        bestLander = level.landers[0];
         if (times % 10 == 0) {
             level.drawLanders();
-            console.log(bestLander.score);
+            console.log(bestLander.score + " in " + bestLander.timestep + " steps");
         }
 
         // Run again
@@ -84,7 +81,7 @@ define([
         run();
     }
     document.getElementById("run").onclick = function() {
-        times = 10000;
+        times = 100000;
         run();
     }
     document.getElementById("stop").onclick = function() {

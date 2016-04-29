@@ -8,7 +8,7 @@ define([
             this.commands   = []
             this.color      = "black"
             this.isFlying   = true
-            this.score      = -1
+            this.score      = 0
             this.x          = parseInt(fields[0])
             this.y          = parseInt(fields[1])
             this.xspeed     = parseInt(fields[2])
@@ -16,7 +16,13 @@ define([
             this.fuel       = parseInt(fields[4])
             this.angle      = parseInt(fields[5])
             this.power      = parseInt(fields[6])
+            this.initX      = this.x
+            this.initY      = this.y
+            this.initXSpeed = this.xspeed
+            this.initYSpeed = this.yspeed
             this.initFuel   = this.fuel
+            this.initAngle  = this.angle
+            this.lastDiff   = 0;
             return this;
         },
         setColor: function(color) {
@@ -97,7 +103,6 @@ define([
                     yPen = 100 * (-40 - this.yspeed) / 200
                 }
                 this.score = 200 - xPen - yPen
-                this.setColor(Helper.rainbow(300, this.score))
                 return;
             }
 
@@ -107,33 +112,72 @@ define([
             }
 
             // Set color according to score
-            this.setColor(Helper.rainbow(2 * 300, this.score))
+            this.setColor(Helper.rainbow(200 + 300, this.score))
         },
-        copyCommandsAndMutate: function(other, count) {
-            var lastAngle = this.angle;
-            for (var i = 0; i < count; i++) {
-                var otherCommand = other.commands[i]
-                var angle = otherCommand[0];
-                angle += Helper.getRandomInt(-10, 10)
-                angle = Math.min(angle,  90, otherCommand[0] + 15)
-                angle = Math.max(angle, -90, otherCommand[0] - 15)
-                lastAngle = angle;
-                var power = otherCommand[1]
+        inheritCommands: function(mom, dad) {
+            for (var i = 0; i < this.commands.length; i++) {
+
+                // Take some from mom and some from dad
+                var momAngle = mom.commands[i][0];
+                var momPower = mom.commands[i][1];
+                var dadAngle = dad.commands[i][0];
+                var dadPower = dad.commands[i][1];
+                var newAngle = momAngle + Math.random() * (dadAngle - momAngle)
+                var newPower = momPower + Math.random() * (dadPower - momPower)
+                this.commands[i] = [newAngle, newPower]
+
+                // Mutation
                 if (Math.random() < 0.1) {
-                    power += Helper.getRandomInt(-1, 1)
-                    power = Math.min(power, 4)
-                    power = Math.max(power, 0)
+                    this.commands[i][0] += Helper.getRandomInt(-10, 10)
+                    this.commands[i][1] += Math.random() - 0.5
                 }
-                this.commands.push([angle, power]);
+
+                // Stay in valid ranges
+                // Disable to see funny things
+                this.commands[i][0] = Math.max(this.commands[i][0], -90)
+                this.commands[i][0] = Math.min(this.commands[i][0],  90)
+                this.commands[i][1] = Math.max(this.commands[i][1],   0)
+                this.commands[i][1] = Math.min(this.commands[i][1],   4)
             }
+        },
+        reset: function() {
+            this.points   = [];
+            this.isFlying = true;
+            this.timestep = 0;
+            this.x        = this.initX;
+            this.y        = this.initY;
+            this.xspeed   = this.initXSpeed;
+            this.yspeed   = this.initYSpeed;
+            this.angle    = this.initAngle;
+            this.fuel     = this.initFuel;
+        },
+        applyCommand: function(t) {
+            var newAngle = this.commands[t][0];
+            var newPower = this.commands[t][1] + this.lastDiff;
+
+            // Set angle
+            if (newAngle + 15 < this.angle) {
+                this.angle -= 15;
+            }
+            else if (this.angle + 15 < newAngle) {
+                this.angle += 15;
+            }
+            else {
+                this.angle = newAngle;
+            }
+
+            // Set power
+            var roundedPower = Math.round(newPower);
+            this.lastDiff = newPower - roundedPower;
+            this.power = roundedPower
         },
         createRandomCommands: function(count) {
             var angle = this.angle;
             for (var i = 0; i < count; i++) {
-                angle += Helper.getRandomInt(-15, 15)
-                angle = Math.min(angle, 90)
-                angle = Math.max(angle, -90)
-                var power = Helper.getRandomInt(0, 4)
+                angle += Helper.getRandomInt(-15, 15);
+                angle = Math.min(angle, 90);
+                angle = Math.max(angle, -90);
+                var power = 4 * Math.random();
                 this.commands.push([angle, power]);
             }
             return this;
