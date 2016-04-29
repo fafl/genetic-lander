@@ -62,7 +62,7 @@ define([
                     .attr("class", "flightpath")
                     .attr("points", polylineString)
                     .style("stroke", this.landers[i].color)
-                    .style("stroke-width", "10")
+                    .style("stroke-width", "2")
                     .style("fill", "none")
             }
         },

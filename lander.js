@@ -84,11 +84,10 @@ define([
                                     Math.pow(level.width, 2) +
                                     Math.pow(level.height, 2));
                 this.score = 100 - (100 * distance / maxDistance);
-                return;
             }
 
             // 100-200: crashed into landing area, calculated by speed above safety
-            if (this.yspeed < -40 || 20 < Math.abs(this.xspeed)) {
+            else if (this.yspeed < -40 || 20 < Math.abs(this.xspeed)) {
                 var xPen = 0;
                 if (20 < Math.abs(this.xspeed)) {
                     xPen = 100 * (Math.abs(this.xspeed) - 20) / 200
@@ -98,11 +97,17 @@ define([
                     yPen = 100 * (-40 - this.yspeed) / 200
                 }
                 this.score = 200 - xPen - yPen
+                this.setColor(Helper.rainbow(300, this.score))
                 return;
             }
-            
+
             // 200-300: landed safely, calculated by fuel remaining
-            this.score = 200 + (100 * this.fuel / this.initfuel)
+            else {
+                this.score = 200 + (100 * this.fuel / this.initFuel)
+            }
+
+            // Set color according to score
+            this.setColor(Helper.rainbow(2 * 300, this.score))
         },
         copyCommandsAndMutate: function(other, count) {
             var lastAngle = this.angle;

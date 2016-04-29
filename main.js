@@ -1,19 +1,18 @@
 define([
     "d3.min",
-    "helper",
     "lander",
     "level"
-], function(d3, Helper, Lander, Level) {
+], function(d3, Lander, Level) {
 
     var NUMBER_OF_LANDERS = 100;
     var MAX_TIMESTEP = 100;
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
-        "9",
+        "8",
         "0 2500", "100 200", "500 150", "1000 400", "2000 400",
-        "2100 110", "6500 350", "6899 300", "6999 2500",
-        "4000 2000 0 0 9750 0 0"
+        "2100 10", "6899 300", "6999 2500",
+        "6000 2500 30 -10 1750 0 0"
     ]
 
     // Load level
@@ -25,7 +24,7 @@ define([
     var times = 0;
     var run = function() {
         if (times <= 0) {
-            console.log(bestLander);
+            console.log(bestLander)
             return
         }
         times -= 1;
@@ -36,14 +35,7 @@ define([
             level.landers.push(
                 Object.create(Lander)
                     .init(level.defaultLanderFields)
-                    .setColor(Helper.rainbow(NUMBER_OF_LANDERS * 5, i))
             )
-        }
-
-        // Best lander may live
-        if (bestLander != null) {
-            level.landers[0] = bestLander;
-            console.log(bestLander.score);
         }
 
         // Create commands for each lander
@@ -57,6 +49,12 @@ define([
             }
         }
 
+        // Best lander may live
+        // TODO best n landers
+        if (bestLander != null) {
+            level.landers[0] = bestLander;
+        }
+
         // Fly you fools
         for (var t = 0; t < MAX_TIMESTEP; t++) {
             for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
@@ -68,15 +66,28 @@ define([
             }
             level.tick();
         }
-        level.drawLanders();
-        bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
 
+        // Find best lander
+        bestLander = level.landers.sort(function(a,b) {return b.score-a.score})[0];
+        if (times % 10 == 0) {
+            level.drawLanders();
+            console.log(bestLander.score);
+        }
+
+        // Run again
         setTimeout(run, 1);
     }
 
-    // Define button
+    // Define buttons
+    document.getElementById("run1").onclick = function() {
+        times = 1;
+        run();
+    }
     document.getElementById("run").onclick = function() {
         times = 10000;
         run();
+    }
+    document.getElementById("stop").onclick = function() {
+        times = 0;
     }
 });
