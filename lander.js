@@ -96,11 +96,11 @@ define([
             else if (this.yspeed < -40 || 20 < Math.abs(this.xspeed)) {
                 var xPen = 0;
                 if (20 < Math.abs(this.xspeed)) {
-                    xPen = 100 * (Math.abs(this.xspeed) - 20) / 200
+                    xPen = (Math.abs(this.xspeed) - 20) / 2
                 }
                 var yPen = 0
                 if (this.yspeed < -40) {
-                    yPen = 100 * (-40 - this.yspeed) / 200
+                    yPen = (-40 - this.yspeed) / 2
                 }
                 this.score = 200 - xPen - yPen
                 return;
@@ -112,7 +112,7 @@ define([
             }
 
             // Set color according to score
-            this.setColor(Helper.rainbow(200 + 300, this.score))
+            this.setColor(Helper.rainbow(300 + 300, this.score))
         },
         inheritCommands: function(mom, dad) {
             for (var i = 0; i < this.commands.length; i++) {
@@ -127,13 +127,24 @@ define([
                 this.commands[i] = [newAngle, newPower]
 
                 // Mutation
-                if (Math.random() < 0.1) {
+                var mutationChance = 0.1;
+                if (100 < Math.max(mom.score, dad.score)) {
+                    mutationChance = 0.05;
+                }
+                if (200 < Math.max(mom.score, dad.score)) {
+                    mutationChance = 0.02;
+                }
+                var progress = 0.2 + (0.8 * i / 150) // TODO make 150 a param
+                if (Math.random() < mutationChance * progress) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
                     this.commands[i][1] += Math.random() - 0.5
                 }
 
                 // Stay in valid ranges
                 // Disable to see funny things
+                var lastAngle = (i == 0 ? this.initAngle : this.commands[i-1][0]);
+                this.commands[i][0] = Math.max(this.commands[i][0], lastAngle - 15)
+                this.commands[i][0] = Math.min(this.commands[i][0], lastAngle + 15)
                 this.commands[i][0] = Math.max(this.commands[i][0], -90)
                 this.commands[i][0] = Math.min(this.commands[i][0],  90)
                 this.commands[i][1] = Math.max(this.commands[i][1],   0)
@@ -152,6 +163,7 @@ define([
             this.fuel     = this.initFuel;
         },
         applyCommand: function(t) {
+            // Read current command
             var newAngle = this.commands[t][0];
             var newPower = this.commands[t][1] + this.lastDiff;
 

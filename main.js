@@ -13,7 +13,7 @@ define([
         "8",
         "0 2500", "100 200", "500 150", "1000 2000", "2000 2000",
         "2100 10", "6899 300", "6999 2500",
-        "6000 2500 20 -10 1750 0 0"
+        "4000 1500 50 50 1750 0 0"
     ]
 
     var times = 0;
@@ -66,7 +66,7 @@ define([
         // Find best lander
         level.landers = level.landers.sort(function(a,b) {return b.score-a.score});
         bestLander = level.landers[0];
-        if (times % 10 == 0) {
+        if (times % 2 == 0) {
             level.drawLanders();
             console.log(bestLander.score + " in " + bestLander.timestep + " steps");
         }
@@ -81,10 +81,10 @@ define([
         run();
     }
     document.getElementById("run").onclick = function() {
-        times = 100000;
+        times = 1000 * 1000;
         run();
     }
-    document.getElementById("stop").onclick = function() {
+    document.getElementById("pause").onclick = function() {
         times = 0;
     }
 });
