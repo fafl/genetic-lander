@@ -78,7 +78,7 @@ define([
             // Score is used to order landers by performance
 
             // 0-100: crashed somewhere, calculated by distance to landing area
-            // TODO check how many waypointswe hit
+            // TODO check how many waypoints we hit
             if (!hitLandingArea) {
                 var lx = (level.landingX2 - level.landingX1) / 2;
                 var ly = level.landingY;
@@ -160,7 +160,7 @@ define([
         applyCommand: function(t) {
             // Read current command
             var newAngle = this.commands[t][0];
-            var newPower = this.commands[t][1] + this.lastDiff;
+            var newPower = this.commands[t][1];
 
             // Set angle
             newAngle = Math.max(newAngle, -90)
@@ -176,6 +176,7 @@ define([
             }
 
             // Set power
+            newPower += this.lastDiff;
             var roundedPower = Math.round(newPower);
             roundedPower = Math.max(roundedPower, 0);
             roundedPower = Math.min(roundedPower, 4);
@@ -188,7 +189,7 @@ define([
                 angle += Helper.getRandomInt(-15, 15);
                 angle = Math.min(angle, 90);
                 angle = Math.max(angle, -90);
-                var power = 4 * Math.random();
+                var power = 5 * Math.random();
                 this.commands.push([angle, power]);
             }
             return this;

@@ -77,35 +77,6 @@ define([
             console.log(bestLander.score + " in " + bestLander.timestep + " steps");
         }
 
-        // Punish similarity
-        /*var DIFFERENCE = 0.05;
-        var maxScore = bestLander.score;
-        var candidateIndex = 1; // Where the next diverse enough lander gets placed
-        for (var i = 1; i < level.landers.length; i++) {
-            var lander = level.landers[i];
-            if (REPRODUCING_LANDERS <= candidateIndex) {
-                // The top list is done
-                break;
-            }
-            if (i == candidateIndex) {
-                if (lander.score + DIFFERENCE < maxScore) {
-                    // This lander is different enough
-                    candidateIndex += 1;
-                    maxScore = lander.score;
-                }
-            }
-            else {
-                if (lander.score + DIFFERENCE < maxScore) {
-                    // Swap the two
-                    candidateIndex += 1;
-                    maxScore = lander.score;
-                    var tmp = level.landers[i];
-                    level.landers[i] = level.landers[candidateIndex];
-                    level.landers[candidateIndex] = tmp;
-                }
-            }
-        }*/
-
         // Run again
         setTimeout(run, 50); // TODO 2 Euro an Rafael
     }
