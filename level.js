@@ -37,7 +37,7 @@ define([
         drawTerrain: function() {
 
             // Create svg element
-            this.svgContainer = d3.select("body").append("svg")
+            this.svgContainer = d3.select("body").select("svg")
                 .attr("width", this.width * 0.2)
                 .attr("height", this.height * 0.2)
                 .attr("viewBox", "0 " + this.height + " " + this.width + " 0")
@@ -75,11 +75,6 @@ define([
                 return x[0] + "," + (level.height-x[1])
             })
             return coords.join(" ")
-        },
-        tick: function() {
-            for (var i = 0; i < this.landers.length; i++) {
-                this.landers[i].tick(this);
-            }
         }
     }
 })

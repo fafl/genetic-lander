@@ -8,7 +8,7 @@ define([
             this.commands   = []
             this.color      = "black"
             this.isFlying   = true
-            this.score      = 0
+            this.score      = -1
             this.x          = parseInt(fields[0])
             this.y          = parseInt(fields[1])
             this.xspeed     = parseInt(fields[2])
@@ -51,7 +51,7 @@ define([
             this.y += this.yspeed - (yacc * 0.5);
 
             // If we left the level we stop
-            if (this.x < 0 || level.width <= this.x || this.y < 0 || this.height < this.y) {
+            if (this.x < 0 || level.width <= this.x || this.y < 0 || level.height <= this.y) {
                 this.isFlying = false;
                 this.calculateScore(level, false);
                 return;
@@ -78,6 +78,7 @@ define([
             // Score is used to order landers by performance
 
             // 0-100: crashed somewhere, calculated by distance to landing area
+            // TODO check how many waypointswe hit
             if (!hitLandingArea) {
                 var lx = (level.landingX2 - level.landingX1) / 2;
                 var ly = level.landingY;
@@ -127,28 +128,22 @@ define([
                 this.commands[i] = [newAngle, newPower]
 
                 // Mutation
-                var mutationChance = 0.1;
+                // Better parent score -> Lower mutation
+                // Later command -> Higher mutation
+                var nobility = 0.1;
                 if (100 < Math.max(mom.score, dad.score)) {
-                    mutationChance = 0.05;
+                    nobility = 0.05;
                 }
                 if (200 < Math.max(mom.score, dad.score)) {
-                    mutationChance = 0.02;
+                    nobility = 0.02;
                 }
-                var progress = 0.2 + (0.8 * i / 150) // TODO make 150 a param
-                if (Math.random() < mutationChance * progress) {
+                var progress = i / this.commands.length
+                var progressChance = 0.2 + 1.0 * progress// + 1.0 * Math.pow(progress, 2)
+                var mutationChance = nobility * progressChance
+                if (Math.random() < mutationChance) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
                     this.commands[i][1] += Math.random() - 0.5
                 }
-
-                // Stay in valid ranges
-                // Disable to see funny things
-                var lastAngle = (i == 0 ? this.initAngle : this.commands[i-1][0]);
-                this.commands[i][0] = Math.max(this.commands[i][0], lastAngle - 15)
-                this.commands[i][0] = Math.min(this.commands[i][0], lastAngle + 15)
-                this.commands[i][0] = Math.max(this.commands[i][0], -90)
-                this.commands[i][0] = Math.min(this.commands[i][0],  90)
-                this.commands[i][1] = Math.max(this.commands[i][1],   0)
-                this.commands[i][1] = Math.min(this.commands[i][1],   4)
             }
         },
         reset: function() {
@@ -168,6 +163,8 @@ define([
             var newPower = this.commands[t][1] + this.lastDiff;
 
             // Set angle
+            newAngle = Math.max(newAngle, -90)
+            newAngle = Math.min(newAngle,  90)
             if (newAngle + 15 < this.angle) {
                 this.angle -= 15;
             }
@@ -180,6 +177,8 @@ define([
 
             // Set power
             var roundedPower = Math.round(newPower);
+            roundedPower = Math.max(roundedPower, 0);
+            roundedPower = Math.min(roundedPower, 4);
             this.lastDiff = newPower - roundedPower;
             this.power = roundedPower
         },

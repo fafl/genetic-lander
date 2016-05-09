@@ -4,16 +4,17 @@ define([
     "level"
 ], function(d3, Lander, Level) {
 
-    var NUMBER_OF_LANDERS = 100;
+    var NUMBER_OF_LANDERS = 200;
     var REPRODUCING_LANDERS = 10;
-    var MAX_TIMESTEP = 150;
+    var MAX_TIMESTEP = 200;
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
-        "8",
+        "14",
         "0 2500", "100 200", "500 150", "1000 2000", "2000 2000",
-        "2100 10", "6899 300", "6999 2500",
-        "4000 1500 50 50 1750 0 0"
+        "2010 1500", "2200 800", "2500 200", "6899 300", "6999 2500",
+        "4100 2600", "4000 1200", "3500 1100", "3400 2900",
+        "4500 2300 50 -10 1750 0 0"
     ]
 
     var times = 0;
@@ -56,11 +57,16 @@ define([
         }
 
         // Fly you fools
-        for (var t = 0; t < MAX_TIMESTEP; t++) {
-            for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
-                level.landers[i].applyCommand(t);
+        for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
+            var lander = level.landers[i];
+            for (var t = 0; t < MAX_TIMESTEP; t++) {
+                lander.applyCommand(t);
+                lander.tick(level);
             }
-            level.tick();
+            // Lander did not touch terrain
+            if (lander.score == -1) {
+                lander.calculateScore(level, false);
+            }
         }
 
         // Find best lander
@@ -71,8 +77,37 @@ define([
             console.log(bestLander.score + " in " + bestLander.timestep + " steps");
         }
 
+        // Punish similarity
+        /*var DIFFERENCE = 0.05;
+        var maxScore = bestLander.score;
+        var candidateIndex = 1; // Where the next diverse enough lander gets placed
+        for (var i = 1; i < level.landers.length; i++) {
+            var lander = level.landers[i];
+            if (REPRODUCING_LANDERS <= candidateIndex) {
+                // The top list is done
+                break;
+            }
+            if (i == candidateIndex) {
+                if (lander.score + DIFFERENCE < maxScore) {
+                    // This lander is different enough
+                    candidateIndex += 1;
+                    maxScore = lander.score;
+                }
+            }
+            else {
+                if (lander.score + DIFFERENCE < maxScore) {
+                    // Swap the two
+                    candidateIndex += 1;
+                    maxScore = lander.score;
+                    var tmp = level.landers[i];
+                    level.landers[i] = level.landers[candidateIndex];
+                    level.landers[candidateIndex] = tmp;
+                }
+            }
+        }*/
+
         // Run again
-        setTimeout(run, 1);
+        setTimeout(run, 50); // TODO 2 Euro an Rafael
     }
 
     // Define buttons
