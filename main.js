@@ -10,13 +10,14 @@ define([
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
-        "14",
-        "0 2500", "100 200", "500 150", "1000 2000", "2000 2000",
-        "2010 1500", "2200 800", "2500 200", "6899 300", "6999 2500",
-        "4100 2600",
-        "4000 1200", "3500 1100",
+        "15",
+        "0 2500", "100 200", "500 150",
+        "1000 2000", "2000 2000", // Landing area
+        "2010 1500", "2200 800", "2500 200",
+        "6899 300", "6999 2500", "4100 2600",
+        "4200 1000", "3500 800", "3100 1100", // Stalagtite
         "3400 2900",
-        "4500 2300 50 -15 1750 0 0"
+        "4500 2300 20 -15 1750 0 0"
     ]
 
     var times = 0;
@@ -45,7 +46,7 @@ define([
             }
         }
 
-        // Evolve existing landers
+        // or evolve existing landers
         else {
             for (var i = REPRODUCING_LANDERS; i < NUMBER_OF_LANDERS; i++) {
                 var momIndex = Math.floor(i / REPRODUCING_LANDERS) - 1;
@@ -74,13 +75,15 @@ define([
         // Find best lander
         level.landers = level.landers.sort(function(a,b) {return b.score-a.score});
         bestLander = level.landers[0];
-        if (times % 2 == 0) {
+
+        // Update screen
+        if (times % 5 == 0) {
             level.drawLanders();
             console.log(bestLander.score + " in " + bestLander.timestep + " steps");
         }
 
         // Run again
-        setTimeout(run, 50); // TODO 2 Euro an Rafael
+        setTimeout(run, 20);
     }
 
     // Define buttons
