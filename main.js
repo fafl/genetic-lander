@@ -6,7 +6,7 @@ define([
 
     var NUMBER_OF_LANDERS = 200;
     var REPRODUCING_LANDERS = 10;
-    var MAX_TIMESTEP = 250;
+    var MAX_TIMESTEP = 300;
 
     var level1data = [
         "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
@@ -17,14 +17,34 @@ define([
         "6899 300", "6999 2500", "4100 2600",
         "4200 1000", "3500 800", "3100 1100", // Stalagtite
         "3400 2900",
+
+        // Lander config
         "4500 2300 20 -15 1750 0 0"
+    ]
+
+    var level2data = [
+        "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
+        "11",
+        "0 2500", "100 1000", "2000 800",
+        "2100 100", "3100 100", // Landing area
+        "3200 1500", "1700 1600", "1700 1800",
+        "4000 1700", "4100 100", "6999 200",
+
+        //Lander config
+        //"4200 300 50 10 1750 0 0" // Start from bottom
+        //"6500 2500 20 -20 1750 0 0" // Long horizontal flight
+        "6500 1500 20 -20 1750 0 0" // S-curve
     ]
 
     var times = 0;
     var bestLander = null;
 
     // Load level
-    var level = Object.create(Level).init(level1data);
+    var level = Object.create(Level).init(level2data);
+    level.waypoints.push(
+        [4000, 1700, 4000, 3000],
+        [1700, 1800,  500, 3000]
+    );
     level.drawTerrain();
 
     // How things are run here

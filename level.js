@@ -4,6 +4,7 @@ define([
         init: function(levelData) {
             this.svgContainer = null;
             this.landers    = []
+            this.waypoints  = []
             var fields = levelData[0].split(" ");
             this.width      = parseInt(fields[0])
             this.height     = parseInt(fields[1])
@@ -14,6 +15,7 @@ define([
             this.landingX1  = -1
             this.landingX2  = -1
             this.landingY   = -1
+            this.max_dist   = Math.sqrt(this.width*this.width+this.height*this.height);
             var numberOfPoints  = parseInt(levelData[1])
             this.points = [];
             var lastX = -1;
@@ -51,6 +53,21 @@ define([
                 .style("stroke", "black")
                 .style("stroke-width", "10")
                 .style("fill", "none")
+
+            // Draw waypoints
+            d3.selectAll(".waypoint").remove();
+            for (var i = 0; i < this.waypoints.length; i++) {
+                var wp = this.waypoints[i];
+                this.svgContainer.append("line")
+                    .attr("class", "waypoint")
+                    .attr("x1", wp[0])
+                    .attr("y1", this.height - wp[1])
+                    .attr("x2", wp[2])
+                    .attr("y2", this.height - wp[3])
+                    .style("stroke", "blue")
+                    .style("stroke-width", "5")
+                    .style("fill", "none")
+            }
         },
         drawLanders: function() {
 

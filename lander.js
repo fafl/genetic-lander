@@ -74,23 +74,66 @@ define([
                 }
             }
         },
+        // Score is used to order landers by performance
         calculateScore: function(level, hitLandingArea) {
-            // Score is used to order landers by performance
+            var currentSpeed = Math.sqrt(Math.pow(this.xspeed, 2) + Math.pow(this.yspeed, 2));
 
             // 0-100: crashed somewhere, calculated by distance to landing area
-            // TODO check how many waypoints we hit
             if (!hitLandingArea) {
-                var lx = (level.landingX2 - level.landingX1) / 2;
-                var ly = level.landingY;
+
+                // Check how many waypoints we hit
+                var nextWaypointIndex = 0;
+                for (var i = 1; i < this.points.length; i++) {
+                    if (nextWaypointIndex == level.waypoints.length) {
+                        // We hit all waypoints
+                        break;
+                    }
+                    var px1 = this.points[i-1][0];
+                    var py1 = this.points[i-1][1];
+                    var px2 = this.points[i  ][0];
+                    var py2 = this.points[i  ][1];
+                    while (true) {
+                        if (nextWaypointIndex == level.waypoints.length) {
+                            // We hit all waypoints
+                            break;
+                        }
+                        var wp = level.waypoints[nextWaypointIndex];
+                        var collision = Helper.checkLineCollision(
+                            px1, py1, px2, py2, wp[0], wp[1], wp[2], wp[3])
+                        if (collision.onLine1 && collision.onLine2) {
+                            nextWaypointIndex++;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+
+                // Calculate distance to next waypoint or landing area
+                var tx, ty;
+                if (nextWaypointIndex == level.waypoints.length) {
+                    tx = (level.landingX1 + level.landingX2) / 2;
+                    ty = level.landingY;
+                }
+                else {
+                    var wp = level.waypoints[nextWaypointIndex];
+                    tx = (wp[0] + wp[2]) / 2;
+                    ty = (wp[1] + wp[3]) / 2;
+                }
                 var px = this.points[this.points.length-1][0];
                 var py = this.points[this.points.length-1][1];
                 var distance = Math.sqrt(
-                                    Math.pow(lx-px, 2) +
-                                    Math.pow(ly-py, 2));
-                var maxDistance = Math.sqrt(
-                                    Math.pow(level.width, 2) +
-                                    Math.pow(level.height, 2));
-                this.score = 100 - (100 * distance / maxDistance);
+                                    Math.pow(tx-px, 2)+
+                                    Math.pow(ty-py, 2));
+
+                // Calculate score from distance
+                var incScore = 100 / (level.waypoints.length + 1);
+                var maxScore = incScore * (nextWaypointIndex + 1);
+                this.score = maxScore - (incScore * distance / level.max_dist);
+
+                // High speeds are bad, they decrease maneuvrability
+                var speedPen = 0.1 * Math.max(currentSpeed - 100, 0);
+                this.score -= speedPen;
             }
 
             // 100-200: crashed into landing area, calculated by speed above safety
@@ -187,7 +230,7 @@ define([
             var angle = this.angle;
             for (var i = 0; i < count; i++) {
                 angle += Helper.getRandomInt(-15, 15);
-                angle = Math.min(angle, 90);
+                angle = Math.min(angle,  90);
                 angle = Math.max(angle, -90);
                 var power = 5 * Math.random();
                 this.commands.push([angle, power]);
