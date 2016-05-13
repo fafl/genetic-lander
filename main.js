@@ -4,7 +4,7 @@ define([
     "level"
 ], function(d3, Lander, Level) {
 
-    var NUMBER_OF_LANDERS = 200;
+    var NUMBER_OF_LANDERS = 100;
     var REPRODUCING_LANDERS = 10;
     var MAX_TIMESTEP = 300;
 
@@ -19,7 +19,8 @@ define([
         "3400 2900",
 
         // Lander config
-        "4500 2300 20 -15 1750 0 0"
+        //"4500 2300 20 -15 1750 0 0"
+        "6500 2300 -50 10 1750 0 0"
     ]
 
     var level2data = [
@@ -31,20 +32,22 @@ define([
         "4000 1700", "4100 100", "6999 200",
 
         //Lander config
-        //"4200 300 50 10 1750 0 0" // Start from bottom
-        //"6500 2500 20 -20 1750 0 0" // Long horizontal flight
-        "6500 1500 20 -20 1750 0 0" // S-curve
+        "4200 300 50 10 1750 0 0" // Start from bottom
+        //"6200 2500 20 -20 1750 0 0" // Long horizontal flight
+        //"6500 1500 20 -20 1750 0 0" // S-curve
     ]
 
     var times = 0;
     var bestLander = null;
 
-    // Load level
-    var level = Object.create(Level).init(level2data);
-    level.waypoints.push(
+    // Load and draw level
+    /*var level = Object.create(Level).init(level1data, [
+        [3500, 820, 3500, 200]
+    ]);*/
+    var level = Object.create(Level).init(level2data, [
         [4000, 1700, 4000, 3000],
         [1700, 1800,  500, 3000]
-    );
+    ]);
     level.drawTerrain();
 
     // How things are run here

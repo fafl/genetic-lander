@@ -1,10 +1,12 @@
 define([
 ], function() {
     return {
-        init: function(levelData) {
+        init: function(levelData, waypoints) {
             this.svgContainer = null;
             this.landers    = []
-            this.waypoints  = []
+            this.waypoints  = waypoints || []
+
+            // Read fields
             var fields = levelData[0].split(" ");
             this.width      = parseInt(fields[0])
             this.height     = parseInt(fields[1])
@@ -16,6 +18,8 @@ define([
             this.landingX2  = -1
             this.landingY   = -1
             this.max_dist   = Math.sqrt(this.width*this.width+this.height*this.height);
+
+            // Read terrain
             var numberOfPoints  = parseInt(levelData[1])
             this.points = [];
             var lastX = -1;
@@ -33,7 +37,10 @@ define([
                 lastX = x;
                 lastY = y;
             }
+
+            // Read initial lander state
             this.defaultLanderFields = levelData[i+2].split(" ")
+
             return this;
         },
         drawTerrain: function() {
