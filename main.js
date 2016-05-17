@@ -4,7 +4,7 @@ define([
     "level"
 ], function(d3, Lander, Level) {
 
-    var NUMBER_OF_LANDERS = 100;
+    var NUMBER_OF_LANDERS = 200;
     var REPRODUCING_LANDERS = 10;
     var MAX_TIMESTEP = 300;
 
@@ -19,8 +19,8 @@ define([
         "3400 2900",
 
         // Lander config
-        //"4500 2300 20 -15 1750 0 0"
-        "6500 2300 -50 10 1750 0 0"
+        //"4500 2300 20 -15 1750 0 0" // Near stalagtite (Highscore 250.857)
+        "6500 2300 -50 10 1750 0 0" // Top right (Highscore 251.257)
     ]
 
     var level2data = [
@@ -32,9 +32,17 @@ define([
         "4000 1700", "4100 100", "6999 200",
 
         //Lander config
-        "4200 300 50 10 1750 0 0" // Start from bottom
-        //"6200 2500 20 -20 1750 0 0" // Long horizontal flight
-        //"6500 1500 20 -20 1750 0 0" // S-curve
+        "4200 300 50 10 1750 0 0" // Start from bottom (Highscore 259.885)
+        //"6200 2500 20 -20 1750 0 0" // Long horizontal flight (Highscore 250.4)
+        //"6500 1500 20 -20 1750 0 0" // S-curve (Highscore 238.4)
+    ]
+
+    var level3data = [
+        "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
+        "7",
+        "0 100", "1000 500", "1500 1500", "3000 1000",
+        "4000 150", "5500 150", "6999 800",
+        "2500 2700 0 0 550 0 0"
     ]
 
     var times = 0;
@@ -44,10 +52,11 @@ define([
     /*var level = Object.create(Level).init(level1data, [
         [3500, 820, 3500, 200]
     ]);*/
-    var level = Object.create(Level).init(level2data, [
+    /*var level = Object.create(Level).init(level2data, [
         [4000, 1700, 4000, 3000],
         [1700, 1800,  500, 3000]
-    ]);
+    ]);*/
+    var level = Object.create(Level).init(level3data);
     level.drawTerrain();
 
     // How things are run here
@@ -100,9 +109,12 @@ define([
         bestLander = level.landers[0];
 
         // Update screen
-        if (times % 5 == 0) {
+        if (times % 2 == 0) {
             level.drawLanders();
-            console.log(bestLander.score + " in " + bestLander.timestep + " steps");
+            console.log("Best score: " + bestLander.score);
+            if (bestLander.timestep === MAX_TIMESTEP) {
+                console.log("MAX_TIMESTEP reached, maybe increase?")
+            }
         }
 
         // Run again

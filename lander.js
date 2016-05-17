@@ -206,6 +206,8 @@ define([
             var newPower = this.commands[t][1];
 
             // Set angle
+            // TODO when almost landed set angle to 0
+            newAngle = Math.round(newAngle)
             newAngle = Math.max(newAngle, -90)
             newAngle = Math.min(newAngle,  90)
             if (newAngle + 15 < this.angle) {
@@ -225,6 +227,14 @@ define([
             roundedPower = Math.min(roundedPower, 4);
             this.lastDiff = newPower - roundedPower;
             this.power = roundedPower
+        },
+        printActualCommands: function() {
+            var result = [];
+            for (var t = 0; t <= this.timestep + 2; t++) {
+                this.applyCommand(t)
+                result.push([this.angle, this.power])
+            }
+            console.log(JSON.stringify(result))
         },
         createRandomCommands: function(count) {
             var angle = this.angle;
