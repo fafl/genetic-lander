@@ -5,6 +5,7 @@ define([
         init: function(fields) {
             this.timestep   = 0
             this.points     = [] // List of past points for drawing
+            this.speeds     = [] // List of past speeds for debugging
             this.commands   = []
             this.color      = "black"
             this.isFlying   = true
@@ -22,6 +23,7 @@ define([
             this.initYSpeed = this.yspeed
             this.initFuel   = this.fuel
             this.initAngle  = this.angle
+            this.initPower  = this.power
             this.lastDiff   = 0;
             return this;
         },
@@ -35,6 +37,7 @@ define([
             }
             this.timestep += 1;
             this.points.push([this.x, this.y]);
+            this.speeds.push([this.xspeed, this.yspeed])
 
             // Advance the lander one timestep
             // From https://forum.codingame.com/t/mars-lander-puzzle-discussion/32/129
@@ -191,6 +194,7 @@ define([
         },
         reset: function() {
             this.points   = [];
+            this.speeds   = [];
             this.isFlying = true;
             this.timestep = 0;
             this.x        = this.initX;
@@ -198,6 +202,7 @@ define([
             this.xspeed   = this.initXSpeed;
             this.yspeed   = this.initYSpeed;
             this.angle    = this.initAngle;
+            this.power    = this.initPower;
             this.fuel     = this.initFuel;
         },
         applyCommand: function(t) {
@@ -223,14 +228,15 @@ define([
             // Set power
             newPower += this.lastDiff;
             var roundedPower = Math.round(newPower);
-            roundedPower = Math.max(roundedPower, 0);
-            roundedPower = Math.min(roundedPower, 4);
+            roundedPower = Math.max(roundedPower, 0, this.power - 1);
+            roundedPower = Math.min(roundedPower, 4, this.power + 1);
             this.lastDiff = newPower - roundedPower;
             this.power = roundedPower
         },
         printActualCommands: function() {
             var result = [];
             this.angle = this.initAngle
+            this.power = this.initPower
             for (var t = 0; t < this.timestep; t++) {
                 this.applyCommand(t)
                 result.push([this.angle, this.power])
