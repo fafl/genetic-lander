@@ -45,6 +45,14 @@ define([
         "2500 2700 0 0 550 0 0"
     ]
 
+    var level4data = [
+        "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
+        "10",
+        "0 100", "1000 500", "1500 100", "3000 100", "3500 500",
+        "3700 200", "5000 1500", "5800 300", "6000 1000", "6999 2000",
+        "6500 2800 -100 0 600 90 0"
+    ]
+
     var times = 0;
     var bestLander = null;
 
@@ -56,13 +64,15 @@ define([
         [4000, 1700, 4000, 3000],
         [1700, 1800,  500, 3000]
     ]);*/
-    var level = Object.create(Level).init(level3data);
+    //var level = Object.create(Level).init(level3data);
+    var level = Object.create(Level).init(level4data);
     level.drawTerrain();
 
     // How things are run here
     var run = function() {
         if (times <= 0) {
             console.log(bestLander)
+            bestLander.printActualCommands();
             return
         }
         times -= 1;
@@ -87,6 +97,10 @@ define([
                     level.landers[momIndex],
                     level.landers[dadIndex]
                 );
+            }
+
+            // Reset all landers
+            for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
                 level.landers[i].reset();
             }
         }

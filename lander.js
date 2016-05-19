@@ -181,7 +181,7 @@ define([
                     nobility = 0.02;
                 }
                 var progress = i / this.commands.length
-                var progressChance = 0.2 + 1.0 * progress// + 1.0 * Math.pow(progress, 2)
+                var progressChance = 0.4 + 1.0 * progress// + 1.0 * Math.pow(progress, 2)
                 var mutationChance = nobility * progressChance
                 if (Math.random() < mutationChance) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
@@ -230,10 +230,14 @@ define([
         },
         printActualCommands: function() {
             var result = [];
-            for (var t = 0; t <= this.timestep + 2; t++) {
+            this.angle = this.initAngle
+            for (var t = 0; t < this.timestep; t++) {
                 this.applyCommand(t)
                 result.push([this.angle, this.power])
             }
+            result.push([0,4])
+            result.push([0,4])
+            result.push([0,4])
             console.log(JSON.stringify(result))
         },
         createRandomCommands: function(count) {
