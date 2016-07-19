@@ -53,19 +53,28 @@ define([
         "6500 2800 -100 0 600 90 0"
     ]
 
+    var level5data = [
+        "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
+        "7",
+        "0 100", "1000 500", "1500 1500", "3000 1000",
+        "4000 150", "5500 150", "6999 800",
+        "2500 2700 0 0 550 0 0"
+    ]
+
     var times = 0;
     var bestLander = null;
 
     // Load and draw level
-    /*var level = Object.create(Level).init(level1data, [
+    var level = Object.create(Level).init(level1data, [
         [3500, 820, 3500, 200]
-    ]);*/
+    ]);
     /*var level = Object.create(Level).init(level2data, [
         [4000, 1700, 4000, 3000],
         [1700, 1800,  500, 3000]
     ]);*/
     //var level = Object.create(Level).init(level3data);
-    var level = Object.create(Level).init(level4data);
+    //var level = Object.create(Level).init(level4data);
+    //var level = Object.create(Level).init(level5data);
     level.drawTerrain();
 
     // How things are run here
