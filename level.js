@@ -1,10 +1,11 @@
 define([
-], function() {
+    "helper",
+    "point"
+], function(Helper, Point) {
     return {
-        init: function(levelData, waypoints) {
+        init: function(levelData) {
             this.svgContainer = null;
-            this.landers    = []
-            this.waypoints  = waypoints || []
+            this.landers = []
 
             // Read fields
             var fields = levelData[0].split(" ");
@@ -17,7 +18,10 @@ define([
             this.landingX1  = -1
             this.landingX2  = -1
             this.landingY   = -1
-            this.max_dist   = Math.sqrt(this.width*this.width+this.height*this.height);
+
+            // Calculate max distance (approximation)
+            // TODO get actual, it must be a corner
+            this.max_dist = 2 * Math.sqrt(this.width*this.width+this.height*this.height);
 
             // Read terrain
             var numberOfPoints  = parseInt(levelData[1])
@@ -28,7 +32,7 @@ define([
                 var points = levelData[i+2].split(" ");
                 var x = parseInt(points[0])
                 var y = parseInt(points[1])
-                this.points.push([x, y]);
+                this.points.push(Object.create(Point).init(x, y));
                 if (lastY != -1 && lastY == y) {
                     this.landingX1 = Math.min(x, lastX);
                     this.landingX2 = Math.max(x, lastX);
@@ -37,6 +41,9 @@ define([
                 lastX = x;
                 lastY = y;
             }
+
+            // Calculate all distances to landing area
+            this.calculateDistances()
 
             // Read initial lander state
             this.defaultLanderFields = levelData[i+2].split(" ")
@@ -53,28 +60,12 @@ define([
                 .attr("viewBox", "0 0 " + this.width + " " + this.height)
 
             // Draw terrain
-            var polylineString = this.toPolylineString(this.points);
             terrain = this.svgContainer.append("polyline")
                 .attr("class", "terrain")
-                .attr("points", polylineString)
+                .attr("points", this.getPolylineString())
                 .style("stroke", "black")
                 .style("stroke-width", "10")
                 .style("fill", "none")
-
-            // Draw waypoints
-            d3.selectAll(".waypoint").remove();
-            for (var i = 0; i < this.waypoints.length; i++) {
-                var wp = this.waypoints[i];
-                this.svgContainer.append("line")
-                    .attr("class", "waypoint")
-                    .attr("x1", wp[0])
-                    .attr("y1", this.height - wp[1])
-                    .attr("x2", wp[2])
-                    .attr("y2", this.height - wp[3])
-                    .style("stroke", "blue")
-                    .style("stroke-width", "5")
-                    .style("fill", "none")
-            }
         },
         drawLanders: function() {
 
@@ -90,13 +81,100 @@ define([
                     .style("fill", "none")
             }
         },
-        toPolylineString: function(a) {
+        calculateDistances: function() {
+
+            // Find the two points forming the landing area
+            var lp1; // First landing point
+            var lp2; // Second landing point
+            var li; // Index of first landing point
+            for (var i = 1; i < this.points.length; i++) {
+                var p1 = this.points[i-1]
+                var p2 = this.points[i]
+                if (p1.y == p2.y) {
+                    lp1 = p1;
+                    lp2 = p2;
+                    li = i-1;
+                    break;
+                }
+            }
+            lp1.distance = 0;
+            lp2.distance = 0;
+
+            // Propagate distances away from the landing area
+            for (var i = li + 2; i < this.points.length; i++) {
+                var other = this.points[i-1]
+                this.points[i].distance = other.distance
+                this.points[i].distance += this.points[i].getDistanceTo(other);
+            }
+            for (var i = li - 1; 0 <= i; i--) {
+                var other = this.points[i+1]
+                this.points[i].distance = other.distance
+                this.points[i].distance += this.points[i].getDistanceTo(other);
+            }
+
+            // Calculate distances until nothing changes anymore
+            // TODO
+            var hasChanged = true;
+            while (hasChanged) {
+                hasChanged = false;
+                for (var i = 0; i < this.points.length; i++) {
+                    var pi = this.points[i];
+                    for (var j = i+1; j < this.points.length; j++) {
+                        var pj = this.points[j];
+
+                    }
+                }
+            }
+        },
+        getDistanceToLandingArea: function(x, y) {
+            var bestDistance = Number.MAX_VALUE;
+            for (var i = 0; i < this.points.length; i++) {
+                var p = this.points[i];
+                var distance = p.getDistance(x, y) + p.distance;
+                if (bestDistance < distance) {
+                    continue
+                }
+
+                // Check if we are inside the wall?
+                // TODO
+
+                // Look for line intersections
+                var found = false;
+                for (var j = 1; j < this.points.length; j++) {
+                    if (j == i || j - 1 == i) {
+                        continue;
+                    }
+                    var p1 = this.points[j-1]
+                    var p2 = this.points[j]
+                    var collision = Helper.checkLineCollision(x, y, p.x, p.y, p1.x, p1.y, p2.x, p2.y)
+                    if (collision.onLine1 && collision.onLine2) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    continue;
+                }
+                bestDistance = distance;
+            }
+            return bestDistance;
+        },
+        getPolylineString: function() {
 
             // Converts an array of pairs to a polyline string
             // Rotates y-axis
-            var level = this;
-            var coords = a.map(function(x) {
-                return x[0] + "," + (level.height-x[1])
+            var height = this.height;
+            var coords = this.points.map(function(p) {
+                return p.x + "," + (height - p.y)
+            })
+            return coords.join(" ")
+        },
+        toPolylineString: function(points) {
+            // Same as above
+            // TODO unify
+            var height = this.height;
+            var coords = points.map(function(p) {
+                return p[0] + "," + (height - p[1])
             })
             return coords.join(" ")
         }

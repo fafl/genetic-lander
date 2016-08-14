@@ -4,9 +4,9 @@ define([
     return {
         init: function(fields) {
             this.timestep   = 0
-            this.points     = [] // List of past points for drawing
+            this.points     = [] // List of past points for drawing // TODO point class?
             this.speeds     = [] // List of past speeds for debugging
-            this.commands   = []
+            this.commands   = [] // List of commands, unbounded
             this.color      = "black"
             this.isFlying   = true
             this.score      = -1
@@ -64,15 +64,13 @@ define([
             var lastX = this.points[this.points.length-1][0];
             var lastY = this.points[this.points.length-1][1];
             for (var i = 1; i < level.points.length; i++) {
-                var tx1 = level.points[i-1][0];
-                var ty1 = level.points[i-1][1];
-                var tx2 = level.points[i  ][0];
-                var ty2 = level.points[i  ][1];
-                var collision = Helper.checkLineCollision(lastX, lastY, this.x, this.y, tx1, ty1, tx2, ty2)
+                var p1 = level.points[i-1];
+                var p2 = level.points[i];
+                var collision = Helper.checkLineCollision(lastX, lastY, this.x, this.y, p1.x, p1.y, p2.x, p2.y)
                 if (collision.onLine1 && collision.onLine2) {
                     this.isFlying = false;
                     this.points.push([collision.x, collision.y]);
-                    this.calculateScore(level, ty1 == ty2);
+                    this.calculateScore(level, p1.y == p2.y);
                     return;
                 }
             }
@@ -81,65 +79,22 @@ define([
         calculateScore: function(level, hitLandingArea) {
             var currentSpeed = Math.sqrt(Math.pow(this.xspeed, 2) + Math.pow(this.yspeed, 2));
 
-            // 0-100: crashed somewhere, calculated by distance to landing area
+            // 0-100: crashed somewhere, calculate score by distance to landing area
             if (!hitLandingArea) {
 
-                // Check how many waypoints we hit
-                var nextWaypointIndex = 0;
-                for (var i = 1; i < this.points.length; i++) {
-                    if (nextWaypointIndex == level.waypoints.length) {
-                        // We hit all waypoints
-                        break;
-                    }
-                    var px1 = this.points[i-1][0];
-                    var py1 = this.points[i-1][1];
-                    var px2 = this.points[i  ][0];
-                    var py2 = this.points[i  ][1];
-                    while (true) {
-                        if (nextWaypointIndex == level.waypoints.length) {
-                            // We hit all waypoints
-                            break;
-                        }
-                        var wp = level.waypoints[nextWaypointIndex];
-                        var collision = Helper.checkLineCollision(
-                            px1, py1, px2, py2, wp[0], wp[1], wp[2], wp[3])
-                        if (collision.onLine1 && collision.onLine2) {
-                            nextWaypointIndex++;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                }
-
-                // Calculate distance to next waypoint or landing area
-                var tx, ty;
-                if (nextWaypointIndex == level.waypoints.length) {
-                    tx = (level.landingX1 + level.landingX2) / 2;
-                    ty = level.landingY;
-                }
-                else {
-                    var wp = level.waypoints[nextWaypointIndex];
-                    tx = (wp[0] + wp[2]) / 2;
-                    ty = (wp[1] + wp[3]) / 2;
-                }
-                var px = this.points[this.points.length-1][0];
-                var py = this.points[this.points.length-1][1];
-                var distance = Math.sqrt(
-                                    Math.pow(tx-px, 2)+
-                                    Math.pow(ty-py, 2));
+                var lastX = this.points[this.points.length-2][0];
+                var lastY = this.points[this.points.length-2][1];
+                var distance = level.getDistanceToLandingArea(lastX, lastY);
 
                 // Calculate score from distance
-                var incScore = 100 / (level.waypoints.length + 1);
-                var maxScore = incScore * (nextWaypointIndex + 1);
-                this.score = maxScore - (incScore * distance / level.max_dist);
+                this.score = 100 - (100 * distance / level.max_dist);
 
                 // High speeds are bad, they decrease maneuvrability
                 var speedPen = 0.1 * Math.max(currentSpeed - 100, 0);
                 this.score -= speedPen;
             }
 
-            // 100-200: crashed into landing area, calculated by speed above safety
+            // 100-200: crashed into landing area, calculate score by speed above safety
             else if (this.yspeed < -40 || 20 < Math.abs(this.xspeed)) {
                 var xPen = 0;
                 if (20 < Math.abs(this.xspeed)) {
@@ -153,7 +108,7 @@ define([
                 return;
             }
 
-            // 200-300: landed safely, calculated by fuel remaining
+            // 200-300: landed safely, calculate score by fuel remaining
             else {
                 this.score = 200 + (100 * this.fuel / this.initFuel)
             }
@@ -176,16 +131,16 @@ define([
                 // Mutation
                 // Better parent score -> Lower mutation
                 // Later command -> Higher mutation
-                var nobility = 0.1;
+                var mudblood = 5;
                 if (100 < Math.max(mom.score, dad.score)) {
-                    nobility = 0.05;
+                    mudblood = 3;
                 }
                 if (200 < Math.max(mom.score, dad.score)) {
-                    nobility = 0.02;
+                    mudblood = 1;
                 }
                 var progress = i / this.commands.length
                 var progressChance = 0.4 + 1.0 * progress// + 1.0 * Math.pow(progress, 2)
-                var mutationChance = nobility * progressChance
+                var mutationChance = 0.02 * mudblood * progressChance
                 if (Math.random() < mutationChance) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
                     this.commands[i][1] += Math.random() - 0.5
@@ -193,8 +148,8 @@ define([
             }
         },
         reset: function() {
-            this.points   = [];
-            this.speeds   = [];
+            this.points   = []; // TODO recycle objects?
+            this.speeds   = []; // TODO recycle objects?
             this.isFlying = true;
             this.timestep = 0;
             this.x        = this.initX;
@@ -204,6 +159,7 @@ define([
             this.angle    = this.initAngle;
             this.power    = this.initPower;
             this.fuel     = this.initFuel;
+            this.lastDiff = 0;
         },
         applyCommand: function(t) {
             // Read current command
@@ -211,7 +167,7 @@ define([
             var newPower = this.commands[t][1];
 
             // Set angle
-            // TODO when almost landed set angle to 0
+            // TODO when almost landed set angle to 0?
             newAngle = Math.round(newAngle)
             newAngle = Math.max(newAngle, -90)
             newAngle = Math.min(newAngle,  90)

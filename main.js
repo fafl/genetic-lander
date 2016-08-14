@@ -1,8 +1,12 @@
 define([
-    "d3.min",
+    "libs/d3.min",
     "lander",
-    "level"
-], function(d3, Lander, Level) {
+    "level",
+    "test"
+], function(d3, Lander, Level, Test) {
+
+    // Test all the things
+    Test.run();
 
     var NUMBER_OF_LANDERS = 200;
     var REPRODUCING_LANDERS = 10;
@@ -32,9 +36,9 @@ define([
         "4000 1700", "4100 100", "6999 200",
 
         //Lander config
-        "4200 300 50 10 1750 0 0" // Start from bottom (Highscore 259.885)
+        //"4200 300 50 10 1750 0 0" // Start from bottom (Highscore 259.885)
         //"6200 2500 20 -20 1750 0 0" // Long horizontal flight (Highscore 250.4)
-        //"6500 1500 20 -20 1750 0 0" // S-curve (Highscore 238.4)
+        "6500 1500 20 -10 1750 0 0" // S-curve (Highscore 238.4)
     ]
 
     var level3data = [
@@ -65,13 +69,8 @@ define([
     var bestLander = null;
 
     // Load and draw level
-    var level = Object.create(Level).init(level1data, [
-        [3500, 820, 3500, 200]
-    ]);
-    /*var level = Object.create(Level).init(level2data, [
-        [4000, 1700, 4000, 3000],
-        [1700, 1800,  500, 3000]
-    ]);*/
+    var level = Object.create(Level).init(level1data);
+    //var level = Object.create(Level).init(level2data);
     //var level = Object.create(Level).init(level3data);
     //var level = Object.create(Level).init(level4data);
     //var level = Object.create(Level).init(level5data);
@@ -82,6 +81,7 @@ define([
         if (times <= 0) {
             console.log(bestLander)
             bestLander.printActualCommands();
+            console.log(JSON.stringify(bestLander.speeds))
             return
         }
         times -= 1;
