@@ -52,12 +52,15 @@ define([
         },
         drawTerrain: function() {
 
-            // Create svg element
+            // Get svg element
             this.svgContainer = d3.select("body").select("svg")
                 .attr("width", this.width * 0.2)
                 .attr("height", this.height * 0.2)
                 .attr("viewBox", "0 " + this.height + " " + this.width + " 0")
                 .attr("viewBox", "0 0 " + this.width + " " + this.height)
+
+            // Clean it
+            this.svgContainer.selectAll("*").remove();
 
             // Draw terrain
             terrain = this.svgContainer.append("polyline")
