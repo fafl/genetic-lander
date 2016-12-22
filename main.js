@@ -24,7 +24,7 @@ define([
             "3400 2900",
 
             // Lander config
-            "6500 2300 -50 10 1750 0 0"
+            "6500 1300 0 50 1750 0 0"
         ],
         "Stalagtite Top Right": [
             "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
@@ -44,33 +44,33 @@ define([
             "11",
             "0 2500", "100 1000", "2000 800",
             "2100 100", "3100 100", // Landing area
-            "3200 1500", "1700 1600", "1700 1800",
+            "3200 1500", "1500 1600", "1500 1800",
             "4000 1700", "4100 100", "6999 200",
 
             //Lander config
-            "6500 1500 20 -10 1750 0 0"
+            "6800 1500 0 -15 1750 0 0"
         ],
         "Cave from bottom": [
             "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
             "11",
             "0 2500", "100 1000", "2000 800",
             "2100 100", "3100 100", // Landing area
-            "3200 1500", "1700 1600", "1700 1800",
+            "3200 1500", "1500 1600", "1500 1800",
             "4000 1700", "4100 100", "6999 200",
 
             //Lander config
-            "4200 300 50 10 1750 0 0"
+            "4200 300 10 20 1750 0 0"
         ],
         "Cave horizontal": [
             "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
             "11",
             "0 2500", "100 1000", "2000 800",
             "2100 100", "3100 100", // Landing area
-            "3200 1500", "1700 1600", "1700 1800",
+            "3200 1500", "1500 1600", "1500 1800",
             "4000 1700", "4100 100", "6999 200",
 
             //Lander config
-            "6200 2500 20 -20 1750 0 0"
+            "6000 2500 40 0 1750 0 0"
         ]/*,
         "Level 3": [
             "7000 3000 3.711 1.0 1.0 1 0 4 -90 90",
@@ -176,6 +176,25 @@ define([
         // Find best lander
         level.landers = level.landers.sort(function(a,b) {return b.score-a.score});
         bestLander = level.landers[0];
+
+        // Throw out landers with high similarity, we want diversity
+        // TODO this is not helping, figure out something else
+        /*var MIN_DIVERSITY = 0.1;
+        for (var i = 5; i < REPRODUCING_LANDERS; i++) {
+            var candidate = level.landers[i];
+            var superior = level.landers[i-1];
+            if (candidate.score + MIN_DIVERSITY < superior.score) {
+                continue;
+            }
+            for (var j = i+1; j < NUMBER_OF_LANDERS; j++) {
+                var replacement = level.landers[j];
+                if (replacement.score + MIN_DIVERSITY < superior.score) {
+                    //console.log("Replacing lander " + i + " with lander " + j)
+                    candidate.cloneCommands(replacement);
+                    break;
+                }
+            }
+        }*/
 
         // Update screen
         if (times % 2 == 0) {

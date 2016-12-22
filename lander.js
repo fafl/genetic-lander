@@ -147,6 +147,12 @@ define([
                 }
             }
         },
+        cloneCommands: function(other) {
+            for (var i = 0; i < this.commands.length; i++) {
+                this.commands[i] = [other.commands[i][0], other.commands[i][1]]
+            }
+            this.score = other.score
+        },
         reset: function() {
             this.points   = []; // TODO recycle objects?
             this.speeds   = []; // TODO recycle objects?
