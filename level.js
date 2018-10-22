@@ -76,6 +76,7 @@ define([
             d3.selectAll(".flightpath").remove();
             for (var i = this.landers.length - 1; 0 <= i; i--) {
                 polylineString = this.toPolylineString(this.landers[i].points);
+
                 this.svgContainer.append("polyline")
                     .attr("class", "flightpath")
                     .attr("points", polylineString)

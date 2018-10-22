@@ -1,16 +1,21 @@
 define([
     "libs/d3.min",
+    "helper",
     "lander",
     "level",
     "test"
-], function(d3, Lander, Level, Test) {
+], function(d3, Helper, Lander, Level, Test) {
 
     // Test all the things
     Test.run();
 
     var NUMBER_OF_LANDERS = 200;
-    var REPRODUCING_LANDERS = 10;
+    var NUMBER_OF_POPULATIONS = 5;
+    var MIX_POPULATION_CHANCE = 0.01;
+    var REPRODUCING_LANDERS = 5;  // Per population
     var MAX_TIMESTEP = 300;
+
+    var LANDERS_IN_POPULATION = Math.floor(NUMBER_OF_LANDERS / NUMBER_OF_POPULATIONS)
 
     var leveldata = {
         "Stalagtite": [
@@ -100,7 +105,7 @@ define([
     var firstleveldata = leveldata[firstlevelname]
     var level = Object.create(Level).init(firstleveldata);
     level.drawTerrain();
-    var times = 0;
+    var times = 0;  // How many more times we should run
     var bestLander = null;
 
     // Fill the level select combo box with options
@@ -123,6 +128,8 @@ define([
 
     // How things are run here
     var run = function() {
+
+        // Anchor condition
         if (times <= 0) {
             console.log(bestLander)
             if (bestLander != null) {
@@ -145,16 +152,43 @@ define([
 
         // or evolve existing landers
         else {
-            for (var i = REPRODUCING_LANDERS; i < NUMBER_OF_LANDERS; i++) {
-                var momIndex = Math.floor(i / REPRODUCING_LANDERS) - 1;
-                var dadIndex = i % REPRODUCING_LANDERS;
-                level.landers[i].inheritCommands(
-                    level.landers[momIndex],
-                    level.landers[dadIndex]
-                );
+            // Evolve each population independently
+            for (var p = 0; p < NUMBER_OF_POPULATIONS; p++) {
+                for (var i = REPRODUCING_LANDERS; i < LANDERS_IN_POPULATION; i++) {
+                    // Replace each low-value lander with a combination of two high-value landers
+                    combinationCount = REPRODUCING_LANDERS * (REPRODUCING_LANDERS - 1)
+                    combination = (i - REPRODUCING_LANDERS) % combinationCount
+                    var momIndex = Math.floor(combination / (REPRODUCING_LANDERS - 1));  // The "row"
+                    var dadIndex = combination % (REPRODUCING_LANDERS - 1);  // The "col"
+                    if (momIndex <= dadIndex) {
+                        // Indexes have to be different
+                        dadIndex += 1
+                    }
+                    var populationOffset = p * LANDERS_IN_POPULATION
+                    level.landers[populationOffset + i].inheritCommands(
+                        level.landers[populationOffset + momIndex],
+                        level.landers[populationOffset + dadIndex]
+                    );
+                }
             }
 
-            // Reset all landers
+            // Maybe mix two populations
+            combinationCount = NUMBER_OF_POPULATIONS * (NUMBER_OF_POPULATIONS - 1)
+            for (var combination = 0; combination < combinationCount; combination++) {
+                if (Math.random() < MIX_POPULATION_CHANCE) {
+                    var p1 = Math.floor(combination / (NUMBER_OF_POPULATIONS - 1))
+                    var p2 = combination % (NUMBER_OF_POPULATIONS - 1)
+
+                    // Have a child from the two best landers and place it randomly
+                    childIndex = Helper.getRandomInt(p1 * LANDERS_IN_POPULATION + REPRODUCING_LANDERS, (p1 + 1) * LANDERS_IN_POPULATION - 1)
+                    level.landers[childIndex].inheritCommands(
+                        level.landers[p1 * LANDERS_IN_POPULATION],
+                        level.landers[p2 * LANDERS_IN_POPULATION]
+                    )
+                }
+            }
+
+            // Reset the state of all landers
             for (var i = 0; i < NUMBER_OF_LANDERS; i++) {
                 level.landers[i].reset();
             }
@@ -173,40 +207,26 @@ define([
             }
         }
 
-        // Find best lander
-        level.landers = level.landers.sort(function(a,b) {return b.score-a.score});
+        // Sort landers by population and score
+        populations = []
+        for (var p = 0; p < NUMBER_OF_POPULATIONS; p++) {
+            populations.push(level.landers.slice(p*LANDERS_IN_POPULATION, (p+1)*LANDERS_IN_POPULATION))
+            populations[p] = populations[p].sort(function(a, b) {return b.score-a.score});
+        }
+        level.landers = [].concat(...populations.sort(function(a, b) {return b[0].score-a[0].score}));
         bestLander = level.landers[0];
 
-        // Throw out landers with high similarity, we want diversity
-        // TODO this is not helping, figure out something else
-        /*var MIN_DIVERSITY = 0.1;
-        for (var i = 5; i < REPRODUCING_LANDERS; i++) {
-            var candidate = level.landers[i];
-            var superior = level.landers[i-1];
-            if (candidate.score + MIN_DIVERSITY < superior.score) {
-                continue;
-            }
-            for (var j = i+1; j < NUMBER_OF_LANDERS; j++) {
-                var replacement = level.landers[j];
-                if (replacement.score + MIN_DIVERSITY < superior.score) {
-                    //console.log("Replacing lander " + i + " with lander " + j)
-                    candidate.cloneCommands(replacement);
-                    break;
-                }
-            }
-        }*/
-
         // Update screen
-        if (times % 2 == 0) {
+        if (times % 4 == 0) {
             level.drawLanders();
             console.log("Best score: " + bestLander.score);
             if (bestLander.timestep === MAX_TIMESTEP) {
-                console.log("MAX_TIMESTEP reached, maybe increase?")
+                //console.log("MAX_TIMESTEP reached, maybe increase?")
             }
         }
 
         // Run again
-        setTimeout(run, 20);
+        setTimeout(run, 0);
     }
 
     // Define buttons

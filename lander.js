@@ -117,30 +117,55 @@ define([
             this.setColor(Helper.rainbow(300 + 300, this.score))
         },
         inheritCommands: function(mom, dad) {
+
+            // Crossover at a random point
+            var first = mom;
+            var second = dad;
+            if (Math.random() < 0.5) {
+                first = dad;
+                second = mom;
+            }
+            var crossoverBorder = Math.floor(Math.max(first.commands.length, second.commands.length) / 3)
+            var crossoverIndex = Helper.getRandomInt(crossoverBorder, second.commands.length - crossoverBorder)
+            for (var i = 0; i < crossoverIndex; i++) {
+                this.commands[i] = [first.commands[i][0], first.commands[i][1]]
+            }
+            for (var i = crossoverIndex; i < second.commands.length; i++) {
+                this.commands[i] = [second.commands[i][0], second.commands[i][1]]
+            }
+
+            // Randomly smoothen command sequences
+            if (Math.random() < 0.2) {
+                // Angle
+                var i = Helper.getRandomInt(0, this.commands.length - 3)
+                avg = (this.commands[i][0] + this.commands[i+1][0] + this.commands[i+2][0]) / 3
+                this.commands[i][0] = avg
+                this.commands[i+1][0] = avg
+                this.commands[i+2][0] = avg
+            }
+            if (Math.random() < 0.2) {
+                // Power
+                var i = Helper.getRandomInt(0, this.commands.length - 3)
+                avg = (this.commands[i][1] + this.commands[i+1][1] + this.commands[i+2][1]) / 3
+                this.commands[i][1] = avg
+                this.commands[i+1][1] = avg
+                this.commands[i+2][1] = avg
+            }
+
+            // Mutation
             for (var i = 0; i < this.commands.length; i++) {
-
-                // Take some from mom and some from dad
-                var momAngle = mom.commands[i][0];
-                var momPower = mom.commands[i][1];
-                var dadAngle = dad.commands[i][0];
-                var dadPower = dad.commands[i][1];
-                var newAngle = momAngle + Math.random() * (dadAngle - momAngle)
-                var newPower = momPower + Math.random() * (dadPower - momPower)
-                this.commands[i] = [newAngle, newPower]
-
-                // Mutation
                 // Better parent score -> Lower mutation
                 // Later command -> Higher mutation
-                var mudblood = 5;
+                var scoreMultiplier = 5;
                 if (100 < Math.max(mom.score, dad.score)) {
-                    mudblood = 3;
+                    scoreMultiplier = 3;
                 }
                 if (200 < Math.max(mom.score, dad.score)) {
-                    mudblood = 1;
+                    scoreMultiplier = 1;
                 }
                 var progress = i / this.commands.length
-                var progressChance = 0.4 + 1.0 * progress// + 1.0 * Math.pow(progress, 2)
-                var mutationChance = 0.02 * mudblood * progressChance
+                var progressChance = 0.4 + 1.0 * progress + 10 * Math.pow(progress, 2)
+                var mutationChance = 0.02 * scoreMultiplier * progressChance
                 if (Math.random() < mutationChance) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
                     this.commands[i][1] += Math.random() - 0.5
@@ -214,7 +239,7 @@ define([
                 angle += Helper.getRandomInt(-15, 15);
                 angle = Math.min(angle,  90);
                 angle = Math.max(angle, -90);
-                var power = 5 * Math.random();
+                var power = 4.1 * Math.random();
                 this.commands.push([angle, power]);
             }
             return this;

@@ -26,6 +26,7 @@ define([
             return c;
         },
         getRandomInt: function(min, max) {
+            // Includes min and max
             return Math.floor(Math.random() * (max - min + 1)) + min;
         },
         checkLineCollision: function(line1StartX, line1StartY, line1EndX, line1EndY, line2StartX, line2StartY, line2EndX, line2EndY) {
