@@ -122,11 +122,14 @@ define([
             var first = mom;
             var second = dad;
             if (Math.random() < 0.5) {
+                // Randomly choose a first and a second parent
                 first = dad;
                 second = mom;
             }
-            var crossoverBorder = Math.floor(Math.max(first.commands.length, second.commands.length) / 3)
-            var crossoverIndex = Helper.getRandomInt(crossoverBorder, second.commands.length - crossoverBorder)
+            var minTimestep = Math.min(first.timestep, second.timestep)
+            var crossoverFrom = Math.floor(minTimestep / 3)
+            var crossoverTo = Math.floor(minTimestep * 2 / 3)
+            var crossoverIndex = Helper.getRandomInt(crossoverFrom, crossoverTo)
             for (var i = 0; i < crossoverIndex; i++) {
                 this.commands[i] = [first.commands[i][0], first.commands[i][1]]
             }
