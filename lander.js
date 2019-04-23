@@ -127,8 +127,8 @@ define([
                 second = mom;
             }
             var minTimestep = Math.min(first.timestep, second.timestep)
-            var crossoverFrom = Math.floor(minTimestep / 3)
-            var crossoverTo = Math.floor(minTimestep * 2 / 3)
+            var crossoverFrom = Math.floor(minTimestep / 5)
+            var crossoverTo = Math.floor(minTimestep * 4 / 5)
             var crossoverIndex = Helper.getRandomInt(crossoverFrom, crossoverTo)
             for (var i = 0; i < crossoverIndex; i++) {
                 this.commands[i] = [first.commands[i][0], first.commands[i][1]]
@@ -168,7 +168,7 @@ define([
                 }
                 var progress = i / this.commands.length
                 var progressChance = 0.4 + 1.0 * progress + 10 * Math.pow(progress, 2)
-                var mutationChance = 0.02 * scoreMultiplier * progressChance
+                var mutationChance = 0.05 * scoreMultiplier * progressChance
                 if (Math.random() < mutationChance) {
                     this.commands[i][0] += Helper.getRandomInt(-10, 10)
                     this.commands[i][1] += Math.random() - 0.5

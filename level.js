@@ -69,6 +69,29 @@ define([
                 .style("stroke", "black")
                 .style("stroke-width", "10")
                 .style("fill", "none")
+
+            // Highlight landing area
+            for (var i = 1; i < this.points.length; i++) {
+                var p1 = this.points[i-1]
+                var p2 = this.points[i]
+                if (p1.y != p2.y) {
+                    continue
+                }
+                this.svgContainer.append("polyline")
+                    .attr("class", "landing")
+                    .attr("points", p1.x + "," + (this.height-p1.y) + " " + p2.x + "," + (this.height-p2.y))
+                    .style("stroke", "#55aa55")
+                    .style("stroke-width", "20")
+                    .style("fill", "none")
+                this.svgContainer.append("text")
+                    .text("GOAL")
+                    .attr("fill", "#55aa55")
+                    .attr("x", (p1.x + p2.x) / 2 )
+                    .attr("y", this.height - p1.y - 20)
+                    .attr("font-size", "100px")
+                    .attr("text-anchor", "middle")
+                break
+            }
         },
         drawLanders: function() {
 
@@ -125,7 +148,6 @@ define([
                     var pi = this.points[i];
                     for (var j = i+1; j < this.points.length; j++) {
                         var pj = this.points[j];
-
                     }
                 }
             }
@@ -164,7 +186,6 @@ define([
             return bestDistance;
         },
         getPolylineString: function() {
-
             // Converts an array of pairs to a polyline string
             // Rotates y-axis
             var height = this.height;
